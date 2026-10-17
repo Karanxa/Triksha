@@ -27,6 +27,7 @@ COPY feature_extractors/ ./feature_extractors/
 COPY mcp_detectors/ ./mcp_detectors/
 COPY repo_scanner/ ./repo_scanner/
 COPY data/ ./data/
+COPY demo_targets.json ./
 
 # Create directories for data persistence (matches prod structure)
 RUN mkdir -p /data

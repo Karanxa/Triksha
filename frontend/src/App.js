@@ -19,6 +19,7 @@ import { CopilotNavProvider } from './contexts/CopilotNavContext';
 import AuthGate from './pages/AuthGate';
 import Settings from './pages/Settings';
 import { ThemeProvider } from './contexts/ThemeContext';
+import Demo from './pages/Demo';
 import './index.css';
 
 // Create a client
@@ -72,6 +73,14 @@ function GatedApp() {
 }
 
 function App() {
+  if (process.env.REACT_APP_DEMO_MODE === 'true') {
+    return (
+      <Router>
+        <Demo />
+        <Toaster position="top-center" />
+      </Router>
+    );
+  }
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

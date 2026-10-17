@@ -276,7 +276,7 @@ app.add_middleware(
 
 
 _OS_PUBLIC_PREFIXES = ("/auth/", "/setup", "/health", "/docs", "/openapi",
-                       "/redoc", "/favicon", "/swagger")
+                       "/redoc", "/favicon", "/swagger", "/demo/")
 
 
 @app.middleware("http")
@@ -5914,6 +5914,11 @@ else:
         console.print("[green]MCP Tool Scan router loaded successfully (standalone)[/]")
     except Exception as e:
         console.print(f"[yellow]MCP Tool Scan router not loaded: {e}[/]")
+
+# Demo gateway (email-verified token access to predefined targets)
+if os.environ.get("DEMO_MODE", "").lower() == "true":
+    from demo_gateway import router as _demo_router
+    app.include_router(_demo_router)
 
 # Agent scanner router – loaded independently of the extra-routers block
 if _HAS_AGENT_SCANNER:
