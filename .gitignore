@@ -119,3 +119,6 @@ nohup.out
 .claude
 .cursor
 .flow
+
+# local venv
+venv/
