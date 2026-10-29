@@ -73,14 +73,6 @@ function GatedApp() {
 }
 
 function App() {
-  if (process.env.REACT_APP_DEMO_MODE === 'true') {
-    return (
-      <Router>
-        <Demo />
-        <Toaster position="top-center" />
-      </Router>
-    );
-  }
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
@@ -88,7 +80,10 @@ function App() {
           <CopilotNavProvider>
           <Router>
             <div className="App">
-              <GatedApp />
+              <Routes>
+                <Route path="/register/*" element={<Demo />} />
+                <Route path="*" element={<GatedApp />} />
+              </Routes>
             <Toaster
               position="top-left"
               toastOptions={{

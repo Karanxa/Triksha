@@ -10,6 +10,16 @@ import json
 import sys
 import uuid
 import asyncio
+
+# Vercel functions have a read-only filesystem except /tmp (ephemeral per instance).
+if os.environ.get("VERCEL"):
+    os.environ["HOME"] = "/tmp"
+    os.environ.setdefault("AUTH_DB_PATH", "/tmp/triksha-auth.db")
+    os.environ.setdefault("DATASET_STORAGE_DIR", "/tmp/datasets")
+    # Several modules write under a relative data/ dir; run from a writable copy.
+    import shutil
+    shutil.copytree(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data"), "/tmp/data", dirs_exist_ok=True)
+    os.chdir("/tmp")
 import traceback
 from datetime import datetime, timedelta
 from pathlib import Path

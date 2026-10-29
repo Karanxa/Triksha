@@ -5,7 +5,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 module.exports = function (app) {
   const targetApi = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  const apiPaths = ['/scan', '/scans', '/models', '/templates', '/auth', '/health', '/dataset', '/generate-system-prompt', '/harden-system-prompt', '/harden/', '/skills/harden', '/mcp', '/swagger', '/triksha', '/manual-test', '/jira', '/sandbox', '/agents', '/security-review', '/dashboard', '/connectors', '/copilot', '/setup', '/redoc'];
+  const apiPaths = ['/demo', '/scan', '/scans', '/models', '/templates', '/auth', '/health', '/dataset', '/generate-system-prompt', '/harden-system-prompt', '/harden/', '/skills/harden', '/mcp', '/swagger', '/triksha', '/manual-test', '/jira', '/sandbox', '/agents', '/security-review', '/dashboard', '/connectors', '/copilot', '/setup', '/redoc'];
   const streamingPaths = ['/scan', '/mcp', '/agents'];
 
   apiPaths.forEach((p) => {

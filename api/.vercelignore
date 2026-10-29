@@ -1,0 +1,6 @@
+venv/
+*.db
+Dockerfile.local
+vulnerable_agent.py
+__pycache__/
+.agents/
