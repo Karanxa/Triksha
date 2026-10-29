@@ -1,0 +1,14 @@
+Terminal 1 — Backend:
+  cd api
+  AUTH_DB_PATH=./triksha-auth.db venv/bin/python -m uvicorn main:app --port 8001 --reload
+
+  Terminal 2 — Frontend:
+  cd frontend
+  REACT_APP_API_URL=http://localhost:8001 DISABLE_ESLINT_PLUGIN=true PORT=8080 npm start
+
+  Then open http://localhost:8080.
+
+  ▎ If you haven't created the venv yet, run this once before Terminal 1:
+  ▎ cd api
+  ▎ python3.11 -m venv venv
+  ▎ venv/bin/pip install -r requirements.txt

@@ -120,7 +120,7 @@ nohup.out
 .cursor
 .flow
 
-# local venv
+# local venv / vercel
 venv/
 .vercel
 .env*

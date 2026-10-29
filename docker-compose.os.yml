@@ -1,0 +1,124 @@
+# Triksha — standalone open-source stack.
+#   docker compose -f docker-compose.os.yml up
+# Services: postgres (pgvector) + kafka (KRaft) + api (FastAPI) + frontend (React/nginx).
+# OSS stack — local auth only. Bring your own LLM key.
+# Kafka is only used when TRIKSHA_USE_KAFKA=true; otherwise scans run on an
+# in-process queue and the broker simply sits idle.
+#
+# DB: PostgreSQL with the pgvector extension is the recommended default —
+# robust under concurrent scans AND doubles as the semantic/vector store.
+# For a zero-dependency quickstart instead, drop the `db` service and set
+# DATABASE_URL=sqlite:///data/triksha.db on the api service.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: triksha-db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-triksha}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-triksha}
+      - POSTGRES_DB=${POSTGRES_DB:-triksha}
+    volumes:
+      - triksha-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-triksha} -d ${POSTGRES_DB:-triksha}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.local
+    image: triksha-api:latest
+    container_name: triksha-api
+    ports:
+      - "8000:8000"
+    environment:
+      - TRIKSHA=true
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - CORS_ORIGINS=http://localhost:8080
+      # PostgreSQL + pgvector (recommended default)
+      - DATABASE_URL=${DATABASE_URL:-postgresql://triksha:triksha@db:5432/triksha}
+      - AUTH_DB_PATH=/data/triksha-auth.db
+      - DATASET_STORAGE_DIR=/data/datasets
+      - SESSION_SECRET=${SESSION_SECRET:-}
+      # Embedding dimension for the pgvector store (all-MiniLM-L6-v2 = 384)
+      - EMBED_DIM=${EMBED_DIM:-384}
+      # LLM (optional here — can be set in the setup wizard instead)
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - LLM_MODEL=${LLM_MODEL:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # Kafka distributed scan queue. Set TRIKSHA_USE_KAFKA=true
+      # to route scans through Kafka; otherwise the in-process asyncio queue is used.
+      - TRIKSHA_USE_KAFKA=${TRIKSHA_USE_KAFKA:-false}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-kafka:9094}
+      - KAFKA_TOPIC_SCANS=${KAFKA_TOPIC_SCANS:-triksha-scans}
+      - KAFKA_CONSUMER_GROUP=${KAFKA_CONSUMER_GROUP:-triksha-scan-workers}
+    volumes:
+      - triksha-data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    restart: unless-stopped
+
+  # Single-node Kafka (KRaft mode — no ZooKeeper). Only used when the api
+  # service has TRIKSHA_USE_KAFKA=true. It starts regardless but is harmless
+  # when the feature flag is off.
+  kafka:
+    image: apache/kafka:3.7.1
+    container_name: triksha-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      # KRaft single-node (combined controller + broker)
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      # Two listeners: PLAINTEXT for Docker-internal, PLAINTEXT_HOST for host access
+      - KAFKA_LISTENERS=PLAINTEXT://:9094,PLAINTEXT_HOST://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9094,PLAINTEXT_HOST://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      # Single-node replication settings
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      # Auto-create the scans topic on first produce.
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+    volumes:
+      - triksha-kafka:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.os
+    image: triksha-frontend:latest
+    container_name: triksha-frontend
+    ports:
+      - "8080:80"
+    environment:
+      - REACT_APP_API_BASE=http://localhost:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  triksha-data:
+    driver: local
+  triksha-pgdata:
+    driver: local
+  triksha-kafka:
+    driver: local

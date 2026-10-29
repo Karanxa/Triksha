@@ -1,0 +1,72 @@
+# Languages Configuration
+# Maps languages to file extensions and special files.
+
+languages:
+  python:
+    extensions:
+      - ".py"
+    special_files:
+      - "requirements.txt"
+      - "pyproject.toml"
+      - "setup.py"
+  
+  javascript:
+    extensions:
+      - ".js"
+      - ".jsx"
+      - ".mjs"
+      - ".cjs"
+    special_files:
+      - "package.json"
+      
+  typescript:
+    extensions:
+      - ".ts"
+      - ".tsx"
+    special_files:
+      - "tsconfig.json"
+
+  go:
+    extensions:
+      - ".go"
+    special_files:
+      - "go.mod"
+      - "go.sum"
+
+  rust:
+    extensions:
+      - ".rs"
+    special_files:
+      - "Cargo.toml"
+
+  java:
+    extensions:
+      - ".java"
+    special_files:
+      - "pom.xml"
+      - "build.gradle"
+
+  csharp:
+    extensions:
+      - ".cs"
+    special_files:
+      - ".csproj"
+      - ".sln"
+
+  ruby:
+    extensions:
+      - ".rb"
+    special_files:
+      - "Gemfile"
+      
+  c_cpp:
+    extensions:
+      - ".c"
+      - ".h"
+      - ".cpp"
+      - ".hpp"
+      - ".cc"
+      - ".cxx"
+    special_files:
+      - "CMakeLists.txt"
+      - "Makefile"

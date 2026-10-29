@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "triksha": {
+      "command": "python3",
+      "args": ["/path/to/triksha/mcp_server.py"],
+      "env": {
+        "TRIKSHA_API_URL": "http://localhost:8001",
+        "TRIKSHA_USERNAME": "admin",
+        "TRIKSHA_PASSWORD": "your-password"
+      }
+    },
+    "atlassian": {
+      "command": "npx",
+      "args": ["-y", "@atlassian/mcp-atlassian"],
+      "env": {
+        "JIRA_URL": "https://your-org.atlassian.net",
+        "JIRA_USERNAME": "you@yourorg.com",
+        "JIRA_API_TOKEN": "your-api-token"
+      }
+    }
+  }
+}

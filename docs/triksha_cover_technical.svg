@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#000000"/>
+      <stop offset="100%" style="stop-color:#0a1628"/>
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4"/>
+      <stop offset="100%" style="stop-color:#3b82f6"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ef4444"/>
+      <stop offset="100%" style="stop-color:#f97316"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e"/>
+      <stop offset="100%" style="stop-color:#10b981"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGrad)"/>
+  
+  <!-- Grid pattern -->
+  <g opacity="0.08">
+    <defs>
+      <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#06b6d4" stroke-width="0.5"/>
+      </pattern>
+    </defs>
+    <rect width="1200" height="630" fill="url(#grid)"/>
+  </g>
+  
+  <!-- Scan lines effect -->
+  <g opacity="0.03">
+    <defs>
+      <pattern id="scanlines" width="4" height="4" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="0" x2="4" y2="0" stroke="#ffffff" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="1200" height="630" fill="url(#scanlines)"/>
+  </g>
+
+  <!-- Left side: Adversarial Prompts (Attack) -->
+  <g transform="translate(80, 140)">
+    <!-- Terminal window -->
+    <rect x="0" y="0" width="320" height="200" rx="8" fill="#1a1a2e" stroke="#ef4444" stroke-width="1" opacity="0.9"/>
+    <rect x="0" y="0" width="320" height="28" rx="8" fill="#2d2d44"/>
+    <circle cx="16" cy="14" r="5" fill="#ef4444"/>
+    <circle cx="34" cy="14" r="5" fill="#fbbf24"/>
+    <circle cx="52" cy="14" r="5" fill="#22c55e"/>
+    <text x="160" y="18" font-family="monospace" font-size="11" fill="#888" text-anchor="middle">adversarial_prompts.py</text>
+    
+    <!-- Code content -->
+    <text x="12" y="50" font-family="monospace" font-size="10" fill="#ef4444">▸ DAN_ATTACK</text>
+    <text x="12" y="68" font-family="monospace" font-size="9" fill="#888">"Ignore all rules..."</text>
+    
+    <text x="12" y="90" font-family="monospace" font-size="10" fill="#f97316">▸ PROMPT_INJECTION</text>
+    <text x="12" y="108" font-family="monospace" font-size="9" fill="#888">"---END SYSTEM---"</text>
+    
+    <text x="12" y="130" font-family="monospace" font-size="10" fill="#fbbf24">▸ ENCODING_ATTACK</text>
+    <text x="12" y="148" font-family="monospace" font-size="9" fill="#888">"Base64: aG93IHRv..."</text>
+    
+    <text x="12" y="170" font-family="monospace" font-size="10" fill="#a855f7">▸ CONTEXT_OVERFLOW</text>
+    <text x="12" y="188" font-family="monospace" font-size="9" fill="#888">"[4096 tokens]..."</text>
+    
+    <!-- Attack label -->
+    <text x="160" y="230" font-family="Arial" font-size="12" font-weight="bold" fill="#ef4444" text-anchor="middle" filter="url(#glow)">ADVERSARIAL PROMPTS</text>
+  </g>
+  
+  <!-- Center: Triksha Engine -->
+  <g transform="translate(480, 100)">
+    <!-- Main processor box -->
+    <rect x="0" y="0" width="240" height="280" rx="12" fill="#0f172a" stroke="url(#cyanGrad)" stroke-width="2"/>
+    
+    <!-- Header -->
+    <rect x="0" y="0" width="240" height="40" rx="12" fill="#1e293b"/>
+    <text x="120" y="26" font-family="Arial" font-size="14" font-weight="bold" fill="#06b6d4" text-anchor="middle">TRIKSHA ENGINE</text>
+    
+    <!-- Processing stages -->
+    <g transform="translate(20, 55)">
+      <rect x="0" y="0" width="200" height="35" rx="4" fill="#1e3a5f" opacity="0.7"/>
+      <text x="100" y="15" font-family="monospace" font-size="9" fill="#64748b" text-anchor="middle">STEP 1</text>
+      <text x="100" y="28" font-family="monospace" font-size="10" fill="#06b6d4" text-anchor="middle">Reconnaissance</text>
+    </g>
+    
+    <g transform="translate(20, 100)">
+      <rect x="0" y="0" width="200" height="35" rx="4" fill="#1e3a5f" opacity="0.7"/>
+      <text x="100" y="15" font-family="monospace" font-size="9" fill="#64748b" text-anchor="middle">STEP 2</text>
+      <text x="100" y="28" font-family="monospace" font-size="10" fill="#8b5cf6" text-anchor="middle">Markov Chain Gen</text>
+    </g>
+    
+    <g transform="translate(20, 145)">
+      <rect x="0" y="0" width="200" height="35" rx="4" fill="#1e3a5f" opacity="0.7"/>
+      <text x="100" y="15" font-family="monospace" font-size="9" fill="#64748b" text-anchor="middle">STEP 3</text>
+      <text x="100" y="28" font-family="monospace" font-size="10" fill="#3b82f6" text-anchor="middle">Gemini Contextual</text>
+    </g>
+    
+    <g transform="translate(20, 190)">
+      <rect x="0" y="0" width="200" height="35" rx="4" fill="#1e3a5f" opacity="0.7"/>
+      <text x="100" y="15" font-family="monospace" font-size="9" fill="#64748b" text-anchor="middle">STEP 4</text>
+      <text x="100" y="28" font-family="monospace" font-size="10" fill="#22c55e" text-anchor="middle">Attack Execution</text>
+    </g>
+    
+    <!-- Stats -->
+    <g transform="translate(20, 240)">
+      <text x="0" y="12" font-family="monospace" font-size="9" fill="#64748b">22+ techniques</text>
+      <text x="0" y="26" font-family="monospace" font-size="9" fill="#64748b">100k+ patterns</text>
+      <text x="120" y="12" font-family="monospace" font-size="9" fill="#22c55e">14.6x</text>
+      <text x="120" y="26" font-family="monospace" font-size="9" fill="#64748b">bypass rate</text>
+    </g>
+  </g>
+  
+  <!-- Right side: Results (Defense) -->
+  <g transform="translate(800, 140)">
+    <!-- Results terminal -->
+    <rect x="0" y="0" width="320" height="200" rx="8" fill="#1a1a2e" stroke="#22c55e" stroke-width="1" opacity="0.9"/>
+    <rect x="0" y="0" width="320" height="28" rx="8" fill="#2d2d44"/>
+    <circle cx="16" cy="14" r="5" fill="#ef4444"/>
+    <circle cx="34" cy="14" r="5" fill="#fbbf24"/>
+    <circle cx="52" cy="14" r="5" fill="#22c55e"/>
+    <text x="160" y="18" font-family="monospace" font-size="11" fill="#888" text-anchor="middle">scan_results.json</text>
+    
+    <!-- Results content -->
+    <text x="12" y="50" font-family="monospace" font-size="10" fill="#22c55e">✓ LLM01: Prompt Injection</text>
+    <text x="270" y="50" font-family="monospace" font-size="10" fill="#22c55e">TESTED</text>
+    
+    <text x="12" y="72" font-family="monospace" font-size="10" fill="#22c55e">✓ LLM02: Data Leakage</text>
+    <text x="270" y="72" font-family="monospace" font-size="10" fill="#22c55e">TESTED</text>
+    
+    <text x="12" y="94" font-family="monospace" font-size="10" fill="#22c55e">✓ LLM04: Malicious Output</text>
+    <text x="270" y="94" font-family="monospace" font-size="10" fill="#22c55e">TESTED</text>
+    
+    <text x="12" y="116" font-family="monospace" font-size="10" fill="#22c55e">✓ LLM05: Privacy Violations</text>
+    <text x="270" y="116" font-family="monospace" font-size="10" fill="#22c55e">TESTED</text>
+    
+    <text x="12" y="145" font-family="monospace" font-size="9" fill="#64748b">───────────────────────────────────</text>
+    
+    <text x="12" y="165" font-family="monospace" font-size="10" fill="#fbbf24">bypassed: 847/1000</text>
+    <text x="12" y="183" font-family="monospace" font-size="10" fill="#ef4444">vulnerabilities: 12 CRITICAL</text>
+    
+    <!-- Label -->
+    <text x="160" y="230" font-family="Arial" font-size="12" font-weight="bold" fill="#22c55e" text-anchor="middle" filter="url(#glow)">SECURITY ANALYSIS</text>
+  </g>
+  
+  <!-- Flow arrows -->
+  <g filter="url(#glow)">
+    <!-- Left to center -->
+    <path d="M 410 240 L 470 240" stroke="url(#redGrad)" stroke-width="3" fill="none" marker-end="url(#arrowRed)"/>
+    <polygon points="470,240 460,235 460,245" fill="#ef4444"/>
+    
+    <!-- Center to right -->
+    <path d="M 730 240 L 790 240" stroke="url(#greenGrad)" stroke-width="3" fill="none"/>
+    <polygon points="790,240 780,235 780,245" fill="#22c55e"/>
+  </g>
+  
+  <!-- Title -->
+  <text x="600" y="480" font-family="'Courier New', monospace" font-size="56" font-weight="bold" fill="#ffffff" text-anchor="middle" filter="url(#softGlow)">TRIKSHA</text>
+  
+  <!-- Subtitle with terminal style -->
+  <g transform="translate(600, 510)">
+    <text x="0" y="0" font-family="monospace" font-size="16" fill="#06b6d4" text-anchor="middle">
+      <tspan fill="#64748b">$</tspan> securing_ai <tspan fill="#22c55e">--with</tspan> ai <tspan fill="#8b5cf6">--context</tspan> aware
+    </text>
+  </g>
+  
+  <!-- Bottom info bar -->
+  <rect x="0" y="580" width="1200" height="50" fill="#0f172a" opacity="0.8"/>
+  <line x1="0" y1="580" x2="1200" y2="580" stroke="#06b6d4" stroke-width="1" opacity="0.3"/>
+  
+  <text x="100" y="610" font-family="monospace" font-size="11" fill="#64748b">OWASP LLM Top 10</text>
+  <text x="300" y="610" font-family="monospace" font-size="11" fill="#64748b">|</text>
+  <text x="400" y="610" font-family="monospace" font-size="11" fill="#64748b">Contextual Red Teaming</text>
+  <text x="600" y="610" font-family="monospace" font-size="11" fill="#64748b">|</text>
+  <text x="700" y="610" font-family="monospace" font-size="11" fill="#64748b">MCP Security</text>
+  
+  <!-- Corner accents -->
+  <path d="M0 0 L60 0 L60 3 L3 3 L3 60 L0 60 Z" fill="#06b6d4" opacity="0.6"/>
+  <path d="M1200 630 L1140 630 L1140 627 L1197 627 L1197 570 L1200 570 Z" fill="#06b6d4" opacity="0.6"/>
+  
+  <!-- Version tag -->
+  <text x="1170" y="25" font-family="monospace" font-size="10" fill="#64748b" text-anchor="end">v2.0</text>
+</svg>
+

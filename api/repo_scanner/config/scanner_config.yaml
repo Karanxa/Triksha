@@ -1,0 +1,357 @@
+# Scanner Configuration
+# MCP Protocol Detection Rules
+#
+# PRECISION NOTES (keep false-positive rate low):
+#   - Every pattern here must be genuinely MCP-specific.
+#   - Generic tokens like `stdio`, `mcp\b`, `new Server()` have been
+#     removed because they fire on any AI/agent codebase.
+#   - Scoring intent: a repo needs ≥ 2 strong signals to reach SERVER.
+
+weights:
+  keyword_match: 0.1
+  dependency_match: 0.1  # DependencyScanner only emits known MCP packages
+  ast_match: 1.0
+
+thresholds:
+  classification:
+    high: 8.0
+    medium: 5.0
+
+keywords:
+  # Legacy fallback – left empty; patterns below are used instead
+  server_indicators: []
+  client_indicators: []
+
+patterns:
+  # ── Group A: Official SDK (+5) ──────────────────────────────────────────
+  # Matches the @modelcontextprotocol npm scope anywhere (package.json, imports)
+  - name: "Official MCP SDK"
+    regex: '(?i)@modelcontextprotocol\/[a-z0-9\-\_]+'
+    score: 5.0
+    classification: "SERVER"
+
+  # Matches the full org/namespace string – lower weight to avoid double-counting
+  - name: "ModelContextProtocol Mention"
+    regex: '(?i)modelcontextprotocol'
+    score: 1.0
+    classification: "SERVER"
+
+  # ── Group B: Package Names (+5) ─────────────────────────────────────────
+  # Exact known MCP server package names only
+  - name: "MCP Server Package"
+    regex: '(?i)\b(mcp[\-_]server|mcpserver|fastmcp)\b'
+    score: 5.0
+    classification: "SERVER"
+
+  # ── Group C: Transports & Core Classes (+4) ─────────────────────────────
+  # ONLY MCP-specific transport class names – NOT generic `stdio`
+  - name: "MCP Transport Class"
+    regex: '(?i)\b(SSEServerTransport|StdioServerTransport|StreamableHTTPServerTransport|streamable[_-]http)\b'
+    score: 4.0
+    classification: "SERVER"
+
+  # `from mcp.server import` or `from mcp import` – must start with `mcp` package root
+  # Removed `new Server(` – matches any JS HTTP/gRPC/WebSocket server
+  - name: "MCP Python Import"
+    regex: '(?i)from\s+mcp(\.server|\.types|\.shared)?(\s+import|\.)'
+    score: 4.0
+    classification: "SERVER"
+
+  # ── Group D: RPC Methods (+3) ────────────────────────────────────────────
+  # These method names are specific to the MCP protocol wire format
+  - name: "MCP Tool Method"
+    regex: '(?i)\b(listTools|callTool|ListToolsRequestSchema|CallToolRequestSchema|registerTool|register_tools|list_tools|call_tool)\b'
+    score: 3.0
+    classification: "SERVER"
+
+  # ── Group E: Dependency / Config Files (+5) ──────────────────────────────
+  # Match `mcp` ONLY as a standalone package name in a dependency file context:
+  #   requirements.txt line: `mcp` or `mcp==x.y` or `mcp>=x`
+  #   package.json key:       `"mcp"`
+  # Removed bare `mcp\b` – it fires on `autogen_ext.tools.mcp`, comments, vars, etc.
+  - name: "MCP Package Declaration"
+    regex: "(?i)(@modelcontextprotocol\\/[^\"'\\s]+|[\"']mcp[\"']|^mcp(?:[=<>!~\\s]|$))"
+    score: 5.0
+    classification: "SERVER"
+
+  # ── Group F: SDK Import Statements (+3) ─────────────────────────────────
+  # JS/TS: import ... from "@modelcontextprotocol/..." or require("@modelcontextprotocol/...")
+  # Python: from mcp import / from mcp.server import (covered in Group C)
+  - name: "MCP SDK Import"
+    regex: "(?i)(import\\s+[^;]+from\\s+[\"']@modelcontextprotocol\\/|require\\([\"']@modelcontextprotocol\\/|require\\([\"']mcp[\"'])"
+    score: 3.0
+    classification: "SERVER"
+
+  # ── Group G: Client-Side Detection (+5 / +4) ────────────────────────────
+  # Repos implementing an MCP *host* / *client* (e.g. Claude Desktop, Cursor)
+  - name: "MCP Client SDK Import"
+    regex: "(?i)(new\\s+Client\\s*\\(|from\\s+[\"']@modelcontextprotocol\\/client|McpClient|mcp\\.ClientSession)"
+    score: 5.0
+    classification: "CLIENT"
+
+  - name: "MCP Client Transport"
+    regex: '(?i)\b(StdioClientTransport|SSEClientTransport|WebSocketClientTransport|stdio_client|sse_client)\b'
+    score: 4.0
+    classification: "CLIENT"
+
+  # ── Group H: Python Decorators (+4 / +3) ─────────────────────────────────
+  # @mcp.tool(), @mcp.resource(), @mcp.prompt() are the canonical Python SDK API
+  - name: "MCP Python Server Decorators"
+    regex: '(?i)@(mcp\.tool|mcp\.resource|mcp\.prompt|server\.list_tools|server\.call_tool)\b'
+    score: 4.0
+    classification: "SERVER"
+
+  # FastMCP (@app.tool / @app.resource / @app.prompt) – popular high-level wrapper
+  # Only matches inside Python files; kept at +3 since @app.tool is slightly more generic
+  - name: "MCP FastMCP Decorators"
+    regex: '(?i)@app\.(tool|resource|prompt)\s*\('
+    score: 3.0
+    classification: "SERVER"
+
+  # ── Group I: Config File Signals (+4) ────────────────────────────────────
+  # Presence of these filenames / keys is a very strong, near-zero false-positive signal
+  - name: "MCP Config File"
+    regex: '(?i)(claude_desktop_config\.json|\.mcp\.json|mcp\.config\.(js|ts|yaml|json)|"mcpServers"|mcpServers\s*:)'
+    score: 4.0
+    classification: "SERVER"
+
+  # ── Group J: Resource & Prompt RPC Methods (+3) ───────────────────────────
+  # The full MCP primitive set: tools + resources + prompts
+  - name: "MCP Resource/Prompt Methods"
+    regex: '(?i)\b(listResources|readResource|listPrompts|getPrompt|ListResourcesRequest|ReadResourceRequest|ListPromptsRequest|GetPromptRequest|list_resources|read_resource|list_prompts|get_prompt)\b'
+    score: 3.0
+    classification: "SERVER"
+
+  # ── Group K: Protocol Version / Schema Signals (+3) ──────────────────────
+  # The MCP spec version string and JsonRPC envelope are unique identifiers
+  - name: "MCP Protocol Version"
+    regex: '(?i)(LATEST_PROTOCOL_VERSION|2024-11-05|2025-03-26|McpSchema)'
+    score: 3.0
+    classification: "SERVER"
+
+  # ── Security Flags (score 0 – informational only) ───────────────────────
+  # These are surfaced as evidence but do NOT contribute to the MCP score.
+  # An MCP server that shells out to the OS is a prompt-injection risk.
+  - name: "Potential RCE/Security Risk"
+    regex: '(?i)(subprocess\.Popen|os\.system|shell=True|\bexec\s*\(|\beval\s*\()'
+    score: 0.0
+    classification: "RISK"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LLM Detection Patterns
+# ═══════════════════════════════════════════════════════════════════════════════
+
+llm_patterns:
+  # Group A: LLM SDK Dependencies (+5 points)
+  - name: "OpenAI SDK"
+    regex: '(?i)(openai|gpt_|chatgpt)'
+    score: 5.0
+    classification: "LLM_OPENAI"
+    
+  - name: "Anthropic SDK"
+    regex: '(?i)(anthropic|claude|@anthropic-ai)'
+    score: 5.0
+    classification: "LLM_ANTHROPIC"
+    
+  - name: "Google Gemini SDK"
+    regex: '(?i)(google-generativeai|gemini|palm-api|bard)'
+    score: 5.0
+    classification: "LLM_GOOGLE"
+    
+  - name: "Cohere SDK"
+    regex: '(?i)\bcohere\b'
+    score: 5.0
+    classification: "LLM_COHERE"
+    
+  - name: "LangChain Framework"
+    regex: '(?i)(langchain|lang_chain)'
+    score: 4.0
+    classification: "LLM_FRAMEWORK"
+    
+  - name: "LlamaIndex Framework"
+    regex: '(?i)(llama[-_]?index|gpt[-_]?index)'
+    score: 4.0
+    classification: "LLM_FRAMEWORK"
+    
+  - name: "HuggingFace Transformers"
+    regex: '(?i)(transformers|huggingface|hf_|from_pretrained)'
+    score: 3.0
+    classification: "LLM_HUGGINGFACE"
+  
+  - name: "Ollama"
+    regex: '(?i)\bollama\b'
+    score: 4.0
+    classification: "LLM_FRAMEWORK"
+  
+  - name: "LiteLLM"
+    regex: '(?i)\blitellm\b'
+    score: 4.0
+    classification: "LLM_FRAMEWORK"
+
+  # Group B: LLM API Endpoints (+4 points)
+  - name: "OpenAI API Endpoint"
+    regex: '(?i)api\.openai\.com'
+    score: 4.0
+    classification: "LLM_OPENAI"
+    
+  - name: "Anthropic API Endpoint"
+    regex: '(?i)api\.anthropic\.com'
+    score: 4.0
+    classification: "LLM_ANTHROPIC"
+    
+  - name: "Google AI API Endpoint"
+    regex: '(?i)generativelanguage\.googleapis\.com'
+    score: 4.0
+    classification: "LLM_GOOGLE"
+
+  # Group C: Model Names (+3 points)
+  - name: "GPT Model Reference"
+    regex: '(?i)(gpt-4|gpt-3\.5|gpt-35|text-davinci|text-curie|text-babbage|text-ada)'
+    score: 3.0
+    classification: "LLM_OPENAI"
+    
+  - name: "Claude Model Reference"
+    regex: '(?i)(claude-[123]|claude-instant|claude-opus|claude-sonnet|claude-haiku)'
+    score: 3.0
+    classification: "LLM_ANTHROPIC"
+    
+  - name: "Gemini Model Reference"
+    regex: '(?i)(gemini-pro|gemini-ultra|gemini-nano|palm-2|text-bison|chat-bison)'
+    score: 3.0
+    classification: "LLM_GOOGLE"
+  
+  - name: "Llama Model Reference"
+    regex: '(?i)(llama-?[23]|codellama|vicuna|alpaca)'
+    score: 3.0
+    classification: "LLM_OPENSOURCE"
+  
+  - name: "Mistral Model Reference"
+    regex: '(?i)(mistral|mixtral)'
+    score: 3.0
+    classification: "LLM_OPENSOURCE"
+
+  # Group D: LLM Client Initialization (+3 points)
+  - name: "OpenAI Client Init"
+    regex: '(?i)(from\s+openai|import\s+openai|OpenAI\(|ChatCompletion|Completion\.create)'
+    score: 3.0
+    classification: "LLM_OPENAI"
+    
+  - name: "Anthropic Client Init"
+    regex: '(?i)(from\s+anthropic|import\s+anthropic|Anthropic\(|messages\.create)'
+    score: 3.0
+    classification: "LLM_ANTHROPIC"
+  
+  - name: "LangChain Import"
+    regex: '(?i)(from\s+langchain|import\s+langchain|ChatOpenAI|ConversationChain)'
+    score: 3.0
+    classification: "LLM_FRAMEWORK"
+  
+  - name: "Transformers Import"
+    regex: '(?i)(from\s+transformers|import\s+transformers|AutoModel|AutoTokenizer|pipeline\()'
+    score: 3.0
+    classification: "LLM_HUGGINGFACE"
+
+  # Group E: API Keys (+2 for env var, +5 for hardcoded)
+  - name: "OpenAI API Key Env"
+    regex: '(?i)(OPENAI_API_KEY|AZURE_OPENAI_KEY)'
+    score: 2.0
+    classification: "LLM_OPENAI"
+    
+  - name: "Anthropic API Key Env"
+    regex: '(?i)ANTHROPIC_API_KEY'
+    score: 2.0
+    classification: "LLM_ANTHROPIC"
+  
+  - name: "Google AI API Key Env"
+    regex: '(?i)(GOOGLE_API_KEY|PALM_API_KEY|GEMINI_API_KEY)'
+    score: 2.0
+    classification: "LLM_GOOGLE"
+    
+  - name: "Hardcoded OpenAI Key"
+    regex: 'sk-[a-zA-Z0-9]{48,}'
+    score: 5.0
+    classification: "LLM_SECURITY_RISK"
+  
+  - name: "Generic LLM API Key"
+    regex: '(?i)(llm_api_key|ai_api_key|model_api_key)'
+    score: 2.0
+    classification: "LLM_GENERIC"
+
+  # Group F: Cloud LLM Services (+5 points)
+  - name: "AWS Bedrock"
+    regex: '(?i)(bedrock|boto3\.client.*bedrock|BedrockRuntime)'
+    score: 5.0
+    classification: "LLM_AWS_BEDROCK"
+    
+  - name: "Azure OpenAI"
+    regex: '(?i)(azure.*openai|AzureOpenAI|azure_endpoint)'
+    score: 5.0
+    classification: "LLM_AZURE_OPENAI"
+  
+  - name: "Google Vertex AI"
+    regex: '(?i)(vertex.*ai|vertexai|aiplatform\.gapic)'
+    score: 5.0
+    classification: "LLM_GOOGLE"
+  
+  - name: "AWS SageMaker"
+    regex: '(?i)(sagemaker.*runtime|invoke_endpoint.*llm|huggingface.*sagemaker)'
+    score: 4.0
+    classification: "LLM_AWS_SAGEMAKER"
+
+  # Group G: Vector Databases (+3 points)
+  - name: "Pinecone"
+    regex: '(?i)\bpinecone\b'
+    score: 3.0
+    classification: "LLM_VECTOR_DB"
+    
+  - name: "Weaviate"
+    regex: '(?i)\bweaviate\b'
+    score: 3.0
+    classification: "LLM_VECTOR_DB"
+    
+  - name: "ChromaDB"
+    regex: '(?i)(chromadb|chroma\.client)'
+    score: 3.0
+    classification: "LLM_VECTOR_DB"
+    
+  - name: "Qdrant"
+    regex: '(?i)\bqdrant\b'
+    score: 3.0
+    classification: "LLM_VECTOR_DB"
+  
+  - name: "FAISS"
+    regex: '(?i)\bfaiss\b'
+    score: 3.0
+    classification: "LLM_VECTOR_DB"
+  
+  - name: "Milvus"
+    regex: '(?i)\bmilvus\b'
+    score: 3.0
+    classification: "LLM_VECTOR_DB"
+  
+  # Group H: Common LLM Functions (+2 points)
+  - name: "Chat Completion"
+    regex: '(?i)(chat.*completion|create_chat|generate_text|generate_response)'
+    score: 2.0
+    classification: "LLM_GENERIC"
+  
+  - name: "Embeddings"
+    regex: '(?i)(create_embedding|get_embedding|embed_text|text_embedding)'
+    score: 2.0
+    classification: "LLM_GENERIC"
+  
+  - name: "Prompt Template"
+    regex: '(?i)(prompt.*template|PromptTemplate|ChatPromptTemplate|system_message)'
+    score: 2.0
+    classification: "LLM_FRAMEWORK"
+  
+  - name: "Token Usage"
+    regex: '(?i)(token_count|num_tokens|tiktoken|encoding\.encode)'
+    score: 2.0
+    classification: "LLM_GENERIC"
+
+# LLM Classification Thresholds
+llm_thresholds:
+  classification:
+    high: 10.0    # Confirmed LLM usage
+    medium: 5.0   # Likely LLM usage
