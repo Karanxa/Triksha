@@ -122,3 +122,5 @@ nohup.out
 
 # local venv
 venv/
+.vercel
+.env*
