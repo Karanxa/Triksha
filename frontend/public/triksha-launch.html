@@ -20,7 +20,6 @@
   a { color: inherit; text-decoration: none; }
   button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
 
-  #bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
   .wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 24px; }
 
   /* Nav */
@@ -45,6 +44,9 @@
   h1 .grad { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .lead { color: var(--text-secondary); font-size: clamp(16px, 1.6vw, 19px); max-width: 520px; margin: 0 0 28px; }
   .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .ack { display: flex; gap: 12px; align-items: flex-start; max-width: 520px; margin: 0 0 24px; padding: 12px 14px; border: 1px solid rgba(12,163,12,.4); border-radius: 12px; background: rgba(12,163,12,.08); color: var(--text-secondary); font-size: 14px; }
+  .ack b { color: var(--text-primary); }
+  .ack .ok { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--good); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
   .trust { margin-top: 32px; display: flex; gap: 28px; flex-wrap: wrap; color: var(--text-muted); font-size: 13px; }
   .trust b { display: block; color: var(--text-primary); font-size: 22px; }
 
@@ -228,7 +230,6 @@
 </style>
 </head>
 <body>
-<canvas id="bg" aria-hidden="true"></canvas>
 
 <div class="wrap">
   <nav class="nav">
@@ -244,8 +245,9 @@
       <span class="pill"><span class="live"></span>Black Hat India 2026 Arsenal · Live demo</span>
       <h1>Red-team your AI<br><span class="grad">before attackers do.</span></h1>
       <p class="lead">Triksha finds every LLM, agent and MCP server in your org, then attacks each one the way a real human would, with exploits built from its own context.</p>
+      <div class="ack"><span class="ok">✓</span><div><b>You're on the contributor waitlist.</b> We'll reach out on GitHub. Meanwhile, play with the live demo on the phone to get the gist of Triksha.</div></div>
       <div class="cta">
-        <a class="btn btn-primary" href="https://github.com/Karanxa/Triksha" target="_blank" rel="noopener">Star on GitHub →</a>
+        <a class="btn btn-primary" href="https://github.com/flipkart-incubator/Triksha" target="_blank" rel="noopener">Star on GitHub →</a>
         <a class="btn btn-ghost" href="#features">See what it does</a>
       </div>
       <div class="trust">
@@ -340,100 +342,20 @@
 
   <section class="block">
     <div class="final reveal">
-      <h2>Ship AI features without the fear.</h2>
-      <p class="sub" style="margin:0 auto 28px">Get your first AI security score in under five minutes.</p>
-      <div class="cta"><a class="btn btn-primary" href="https://github.com/Karanxa/Triksha" target="_blank" rel="noopener">Star on GitHub →</a><a class="btn btn-ghost" href="#">Book a demo</a></div>
+      <div class="eyebrow">Open source</div>
+      <h2>Help build Triksha.</h2>
+      <p class="sub" style="margin:0 auto 28px">Triksha is open source. Add an attack technique, a detector or a fix, or open an issue. You're already on the contributor waitlist.</p>
+      <div class="cta"><a class="btn btn-primary" href="https://github.com/flipkart-incubator/Triksha" target="_blank" rel="noopener">Contribute on GitHub →</a></div>
     </div>
   </section>
 
   <footer><span>© 2026 Triksha</span><span>Security · Privacy · Docs · Status</span></footer>
 </div>
 
-<script type="importmap">{ "imports": { "three": "https://esm.sh/three@0.186.1" } }</script>
 <script type="module">
-import * as THREE from 'three';
-
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-
-/* ================= Three.js background: AI attack-surface network ================= */
-const canvas = $('#bg');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
-camera.position.z = 14;
-const group = new THREE.Group();
-scene.add(group);
-
-const N = innerWidth < 600 ? 90 : 160, R = 6.5;
-const pts = [];
-for (let i = 0; i < N; i++) { // points on a fibonacci sphere, jittered
-  const y = 1 - (i / (N - 1)) * 2, r = Math.sqrt(1 - y * y), th = i * 2.399963;
-  pts.push(new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r).multiplyScalar(R * (0.85 + Math.random() * 0.3)));
-}
-const pos = new Float32Array(N * 3), col = new Float32Array(N * 3);
-const cBlue = new THREE.Color('#3987e5'), cViolet = new THREE.Color('#9085e9'), cRed = new THREE.Color('#d03b3b');
-const threats = new Set(Array.from({ length: Math.round(N * 0.06) }, () => Math.floor(Math.random() * N)));
-pts.forEach((p, i) => {
-  p.toArray(pos, i * 3);
-  (threats.has(i) ? cRed : cBlue.clone().lerp(cViolet, Math.random())).toArray(col, i * 3);
-});
-const pGeo = new THREE.BufferGeometry();
-pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-pGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-const dotTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
-  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(.35, 'rgba(255,255,255,.6)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
-group.add(new THREE.Points(pGeo, new THREE.PointsMaterial({ size: 0.34, map: dotTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
-
-const lp = [], edges = [];
-for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) if (pts[i].distanceTo(pts[j]) < 2.3) { lp.push(...pts[i].toArray(), ...pts[j].toArray()); edges.push([i, j]); }
-const lGeo = new THREE.BufferGeometry();
-lGeo.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3));
-group.add(new THREE.LineSegments(lGeo, new THREE.LineBasicMaterial({ color: '#3987e5', transparent: true, opacity: 0.13 })));
-
-// "Attack" pulses travelling along edges
-const PULSES = 26, pulsePos = new Float32Array(PULSES * 3), pulses = [];
-const pulseGeo = new THREE.BufferGeometry();
-pulseGeo.setAttribute('position', new THREE.BufferAttribute(pulsePos, 3));
-group.add(new THREE.Points(pulseGeo, new THREE.PointsMaterial({ size: 0.28, map: dotTex, color: '#ffffff', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
-const newPulse = p => Object.assign(p, { e: edges[Math.floor(Math.random() * edges.length)], t: 0, v: 0.004 + Math.random() * 0.01 });
-for (let i = 0; i < PULSES; i++) pulses.push(newPulse({}));
-
-// Shield core
-const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.5, 1), new THREE.MeshBasicMaterial({ color: '#9085e9', wireframe: true, transparent: true, opacity: 0.35 }));
-group.add(core);
-
-let mx = 0, my = 0;
-addEventListener('pointermove', e => { mx = e.clientX / innerWidth - .5; my = e.clientY / innerHeight - .5; });
-const resize = () => {
-  renderer.setSize(innerWidth, innerHeight, false);
-  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
-  group.position.x = innerWidth > 920 ? 3.2 : 0; // sit behind the phone on desktop
-};
-addEventListener('resize', resize); resize();
-
-const clock = new THREE.Clock();
-(function loop() {
-  const dt = clock.getDelta(), t = clock.elapsedTime;
-  if (!reduced) {
-    group.rotation.y += dt * 0.06;
-    group.rotation.x += ((my * 0.4) - group.rotation.x) * 0.04;
-    group.rotation.z += ((-mx * 0.2) - group.rotation.z) * 0.04;
-    core.rotation.x = t * 0.3; core.rotation.y = t * 0.4;
-    core.scale.setScalar(1 + Math.sin(t * 2) * 0.05);
-    pulses.forEach((p, i) => {
-      p.t += p.v * 60 * dt; if (p.t >= 1) newPulse(p);
-      new THREE.Vector3().lerpVectors(pts[p.e[0]], pts[p.e[1]], p.t).toArray(pulsePos, i * 3);
-    });
-    pulseGeo.attributes.position.needsUpdate = true;
-  }
-  group.position.y = -scrollY * 0.004;
-  renderer.render(scene, camera);
-  requestAnimationFrame(loop);
-})();
 
 /* ================= Phone: fit + tilt ================= */
 const fitPhone = () => {
