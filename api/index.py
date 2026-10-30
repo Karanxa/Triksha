@@ -1,9 +1,9 @@
 """
-Black Hat India Arsenal demo registration: token issue only (the tool has its own login).
+Triksha demo API: registration and token issue only.
 
 /demo/register emails a time-boxed token (proof of address); /demo/session validates it.
 Env: DATABASE_URL (else sqlite DEMO_DB_PATH), RESEND_API_KEY, DEMO_FROM_EMAIL,
-     DEMO_TOKEN_TTL_SECONDS, DEMO_ADMIN_KEY.
+     DEMO_TOKEN_TTL_SECONDS, DEMO_ADMIN_KEY, CORS_ORIGINS.
 """
 import hashlib
 import html
@@ -14,7 +14,8 @@ import time
 from typing import Any, Optional
 
 import httpx
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, FastAPI, Header, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, Field
 
 router = APIRouter(prefix="/demo", tags=["Demo"])
@@ -168,3 +169,13 @@ async def export_visitors(x_api_key: Optional[str] = Header(None)):
     return _run("""SELECT email, name, company, job_title, phone, country, interest,
                    marketing_consent, verified_at, created_at FROM demo_visitors
                    ORDER BY created_at DESC""", (), "all")
+
+
+app = FastAPI(title="Triksha demo API", docs_url=None, redoc_url=None)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o for o in os.getenv("CORS_ORIGINS", "").split(",") if o],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-Demo-Token"],
+)
+app.include_router(router)

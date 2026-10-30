@@ -31,7 +31,7 @@ function Register() {
     try {
       await api('/session', { token });
       localStorage.setItem(TOKEN_KEY, token);
-      navigate('/register/launch');
+      navigate('/launch');
     } catch (err) {
       toast.error('That token didn\'t work. Copy it again from the email.');
     } finally {
@@ -110,14 +110,14 @@ function Register() {
 
 // Launch page is only shown once a token has been issued.
 function Launch() {
-  if (!localStorage.getItem(TOKEN_KEY)) return <Navigate to="/register" replace />;
+  if (!localStorage.getItem(TOKEN_KEY)) return <Navigate to="/" replace />;
   return <iframe title="Triksha" src="/triksha-launch.html" className="h-screen w-screen border-0" />;
 }
 
 export default function Demo() {
   return (
     <Routes>
-      <Route path="launch" element={<Launch />} />
+      <Route path="/launch" element={<Launch />} />
       <Route path="*" element={<Register />} />
     </Routes>
   );
